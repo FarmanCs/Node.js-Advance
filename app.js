@@ -21,7 +21,7 @@ const app = express()
 app.set('view engine', 'pug')
 app.set('views', path.join(__dirname, 'views'))
 
-//GLOBAL MIDDELWARE OF EXPRESS
+//GLOBAL MIDDELWARE OF EXPRESS_
 
 app.use(express.static(path.join(__dirname, 'public')))
 //Set HTTP security headers
