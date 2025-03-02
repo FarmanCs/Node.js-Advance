@@ -23,7 +23,7 @@ exports.getTour = tryCatchError(async (req, res) => {
    // 2 build templet
    // 3 render the data 
    res.status(200).render('tour', {
-      title: "The forest hiker",
+      title: `${tour.name}`,
       tour
    })
 })
