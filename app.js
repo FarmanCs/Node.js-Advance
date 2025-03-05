@@ -5,17 +5,29 @@ const morgan = require("morgan")
 const rateLimit = require('express-rate-limit')
 // const helmet = require('helmet')
 const mongoSanitize = require('express-mongo-sanitize')
-const xss = require('xss-clean')
+const cookieParser = require('cookie-parser')
+// const xss = require('xss-clean')
 const hpp = require('hpp')
+const cors = require('cors');
 
 const userRouter = require("./routes/user-router")
 const tourRouter = require("./routes/tours-router")
 const reviewRouter = require('./routes/review-router')
 const viewRouter = require('./routes/view-router')
-const AppError = require("./utils/error")
 const globalError = require('./controller/error-controller')
 // const userRouter =
 const app = express()
+
+//one of the most important middlewar use to allow crose port requests
+app.use(cors({
+   origin: 'http://127.0.0.1:8080',
+   credentials: true,
+   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+   allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.options('*', cors());
+
 
 
 app.set('view engine', 'pug')
@@ -44,24 +56,22 @@ app.use('/api', limter)
 //express middleware for body reading of req object
 // app.use(express.json({ limit: '10kb' }))//this will only handl object with 10Kb 
 app.use(express.json())
+app.use(cookieParser())//this will parse the data frome the cookie
 
 //data  senetization agin NOSQL injection 
 app.use(mongoSanitize())
 
 //data senetization form xss
-app.use(xss())
+// app.use(xss())
 
 //prevent or take care of parameter palution..
 app.use(hpp({
    whitelist: ['duration', 'price']//this will worke on those fields which is in arry
 }))
-//reading static file 
-// app.use(express.static(`${__dirname}/public`))
 
 app.use((req, res, next) => {
    req.requestTime = new Date().toISOString()
-   // console.log(req.headers);
-
+   console.log(req.cookies);
    next()
 })
 

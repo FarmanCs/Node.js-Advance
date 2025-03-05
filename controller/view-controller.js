@@ -14,7 +14,7 @@ exports.getOverview = tryCatchError(async (req, res, next) => {
    })
 })
 
-exports.getTour = tryCatchError(async (req, res) => {
+exports.getTour = tryCatchError(async (req, res, next) => {
    // 1  get the data, for the requested tour
    const tour = await tourModel.findOne({ slug: req.params.slug }).populate({
       path: 'reviews',
@@ -27,3 +27,10 @@ exports.getTour = tryCatchError(async (req, res) => {
       tour
    })
 })
+
+
+exports.getLoginForm = tryCatchError(async (req, res) => {
+   res.status(200).render('login', {
+      title: 'Login to your account'
+   });
+});
