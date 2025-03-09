@@ -56,7 +56,9 @@ app.use('/api', limter)
 //express middleware for body reading of req object
 // app.use(express.json({ limit: '10kb' }))//this will only handl object with 10Kb 
 app.use(express.json())
+app.use(express.urlencoded({ extended: true, limit: '10kb' }))
 app.use(cookieParser())//this will parse the data frome the cookie
+
 
 //data  senetization agin NOSQL injection 
 app.use(mongoSanitize())
@@ -71,7 +73,7 @@ app.use(hpp({
 
 app.use((req, res, next) => {
    req.requestTime = new Date().toISOString()
-   console.log(req.cookies);
+   // console.log(req.cookies);
    next()
 })
 

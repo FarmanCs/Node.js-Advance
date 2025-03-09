@@ -17,7 +17,6 @@ exports.deleteOne = Model => tryCatchError(async (req, res, next) => {
 
 exports.updateOne = Model => tryCatchError(async (req, res) => {
    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
-   // const tourData = await tourModle.findByIdAndUpdate({ _id: req.params.id })
    res.status(201).json({
       status: 'update doc data succesfully...',
       Data: doc

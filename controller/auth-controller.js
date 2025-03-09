@@ -12,7 +12,6 @@ const signToken = id => {
    return jwt.sign({ id }, process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE_IN })
 }
-
 //creat a function for sent token to clint or user
 const creatSendToken = (user, statusCode, res) => {
    const token = signToken(user._id)
@@ -28,7 +27,6 @@ const creatSendToken = (user, statusCode, res) => {
 
    //sending cookie
    res.cookie('jwt', token, cookieOptions)
-
    //this will hide the password from the user response
    user.password = undefined
    res.status(statusCode).json({
@@ -48,7 +46,7 @@ exports.singup = tryCatchError(async (req, res) => {
 exports.login = tryCatchError(async (req, res, next) => {
    // 1) cheeck the email and password is correct or not or prestent or not
    const { email, password } = req.body
-   console.log(`Email is : ${email} while the password is ${password}`);
+   // console.log(`Email is : ${email} while the password is ${password}`);
 
    if (!email || !password) {
       return next(new AppError("please provide the email and password", 400))
@@ -56,7 +54,6 @@ exports.login = tryCatchError(async (req, res, next) => {
    // 2) check the use with this email is present in db or not & the passowrd ok
    const user = await userModel.findOne({ email }).select('+password')
    // email.toLowerCase()
-   console.log(user);
    //this will work the same as above 
    if (!user || !(await user.correctPassword(password, user.password))) {
       return next(new AppError("Incorect passowrd or email", 401))
@@ -65,6 +62,15 @@ exports.login = tryCatchError(async (req, res, next) => {
    creatSendToken(user, 200, res)
 })
 
+//Logged out 
+
+exports.logout = (req, res) => {
+   res.cookie('jwt', 'loggedout', {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true
+   });
+   res.status(200).json({ status: 'success' })
+}
 
 //auth middleware to for protection
 exports.protect = tryCatchError(async (req, res, next) => {
@@ -87,13 +93,49 @@ exports.protect = tryCatchError(async (req, res, next) => {
    if (!createdUser) return next(new AppError('user no longer exist:', 401))
 
    // 4)    check if user chang the password after taken is genrated..
-   createdUser.changedPasswordAfter(decoded.iat)
+   // createdUser.changedPasswordAfter(decoded.iat)
    if (createdUser.changedPasswordAfter(decoded.iat)) {
-      return next(new AppError("user recently change passowrd, please login agin", 401))
+      return next(
+         new AppError("user recently change passowrd, please login agin", 401)
+      )
    }
    req.user = createdUser
+   res.locals.user = createdUser
    next()
 })
+
+
+//for rendring the franted pages authenticaiont
+exports.isLoggedIn = async (req, res, next) => {
+   // 1) get token and check for existance
+   if (req.cookies.jwt) {
+      try {
+         // here we very the token from cookies
+         const decoded = await promisify(jwt.verify)(
+            req.cookies.jwt,
+            process.env.JWT_SECRET
+         )
+         // 2) check the token vaidaton...
+         const currentUser = await userModel.findById(decoded.id)
+         if (!currentUser) {
+            return next()
+         }
+
+         // 4)    check if user chang the password after taken is genrated..
+         if (currentUser.changedPasswordAfter(decoded.iat)) {
+            return next()
+         }
+         //there is  logged in user
+         res.locals.user = currentUser
+         return next()
+      } catch (error) {
+         return next()
+      }
+   }
+   next()
+}
+
+
 
 //restrection middleware for protection of some  action... 
 exports.restrectTo = (...roles) => {

@@ -1,38 +1,34 @@
-// const login = async (email, password) => {
-//    console.log(email, password);
-//    try {
-//       const result = await axios({
-//          method: 'POST',
-//          url: 'http://127.0.0.1:7070/api/v1/users/login',//{{URL}}api/v1/users/login
-//          data: { email, password },
-//          // withCredentials: true
-//       });
-//       console.log(result);
-//    } catch (err) {
-//       console.log(err);
-//    }
-// };
-
-const login = async (email, password) => {
+import axios from 'axios'
+import { showAlert } from './alert';
+export const login = async (email, password) => {
    console.log(email, password);
    try {
       const result = await axios({
          method: 'POST',
          url: 'http://127.0.0.1:7070/api/v1/users/login',
          data: { email, password },
-         withCredentials: true // ✅ Include cookies
+         withCredentials: true // Include cookies in the response
       });
-      console.log(result);
+
+      if (result.data.status === 'success') {
+         showAlert('success', 'logged in succesfully')
+         window.setTimeout(() => {
+            location.assign('/')
+         }, 250)
+      }
    } catch (err) {
-      console.log(err);
+      showAlert('error', err.response.data.message)
    }
 };
 
-
-
-document.querySelector('.form').addEventListener('submit', e => {
-   e.preventDefault();
-   const email = document.getElementById('email').value;
-   const password = document.getElementById('password').value;
-   login(email, password);
-});
+export const logout = async () => {
+   try {
+      const res = await axios({
+         method: 'GET',
+         url: 'http://127.0.0.1:7070/api/v1/users/logout',
+      });
+      if ((res.data.status === 'success')) location.reload(true)//refress the page from the server
+   } catch (error) {
+      showAlert('error', 'Error! logging out! try again')
+   }
+}
